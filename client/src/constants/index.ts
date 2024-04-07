@@ -1,6 +1,8 @@
 import { Email, GitHub, LinkedIn } from '@mui/icons-material';
 import { SvgIconProps } from '@mui/material';
 
+export const POSTS_CHUNK = 10;
+
 export const LINKS: {
     icon: React.ElementType<SvgIconProps>;
     url: string;

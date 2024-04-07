@@ -1,7 +1,18 @@
-import React from 'react';
-import { Box, BoxProps, styled, useMediaQuery, useTheme } from '@mui/material';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    Box,
+    BoxProps,
+    Button,
+    styled,
+    useMediaQuery,
+    useTheme
+} from '@mui/material';
 import { useMainContext } from '../contexts/MainContext';
 import Header from './Header';
+import { LINKS, POSTS_CHUNK } from '../constants';
+import { Post } from 'GlobalTypes';
+import { HeadsetMic } from '@mui/icons-material';
+import SinglePost from './SinglePost';
 
 interface MdScreenProps extends BoxProps {
     mdScreen: boolean;
@@ -35,16 +46,136 @@ const MainSection = styled(Box, {
     flex: 1
 }));
 
+const QuestionsSection = styled(Box, {
+    shouldForwardProp: (prop) => prop !== 'mdScreen'
+})<MdScreenProps>(({ mdScreen }) => ({
+    background: '#FFF',
+    flex: 1,
+    height: '100%',
+    maxHeight: mdScreen ? 500 : 600,
+    overflowY: 'scroll',
+    padding: mdScreen ? '0 10px' : '0 40px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+
+    '::-webkit-scrollbar': {
+        background: '#f5f5f5',
+        borderRadius: 10,
+        width: 7,
+        height: 2
+    },
+    '::-webkit-scrollbar-thumb': {
+        background: '#D9D9D9',
+        borderRadius: 10,
+        cursor: 'pointer'
+    }
+}));
+
+const ContactSection = styled(Box, {
+    shouldForwardProp: (prop) => prop !== 'mdScreen'
+})<MdScreenProps>(({ mdScreen }) => ({
+    background: '#FFF',
+    flex: 1,
+    display: mdScreen ? 'none' : 'flex',
+    justifyContent: 'center',
+    paddingTop: 40
+}));
+
+const ContactWrapper = styled(Box)({
+    background: '#D9D9D9',
+    color: '#424242',
+    width: 80,
+    height: 80,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    borderRadius: '50%',
+    gap: 5,
+    cursor: 'pointer',
+
+    ':hover': {
+        background: '#E4E4E4'
+    },
+
+    h4: {
+        fontWeight: 700,
+        margin: 'unset'
+    }
+});
+
+const LoadMoreButton = styled(Button)({
+    background: '#424242',
+    fontSize: 16,
+    textTransform: 'none',
+    color: '#FFF',
+    fontWeight: 400,
+    height: 40,
+    marginTop: '10px',
+    cursor: 'pointer',
+    userSelect: 'none',
+    width: 200,
+    alignSelf: 'center',
+
+    ':disabled': {
+        color: '#F0F0F0',
+        cursor: 'not-allowed'
+    },
+
+    ':hover': {
+        background: '#70D159'
+    }
+});
+
 const FrequentQuestionsPage = () => {
     const theme = useTheme();
     const mdScreen = useMediaQuery(theme.breakpoints.down('lg'));
     const { posts } = useMainContext();
+    const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
+    const [postCount, setPostCount] = useState<number>(POSTS_CHUNK);
+    const maxPosts = useMemo(() => posts.length, [posts]);
+
+    const handleLoadMore = useCallback(() => {
+        if (postCount < maxPosts) {
+            setPostCount((prev) => prev + POSTS_CHUNK);
+        }
+    }, [maxPosts, postCount]);
+
+    useEffect(() => {
+        setDisplayPosts(posts.slice(0, postCount));
+    }, [postCount, posts]);
 
     return (
         <PageCotainer>
             <Header />
             <PageHeader>Fragen & Antworten</PageHeader>
-            <MainSection mdScreen={mdScreen}></MainSection>
+            <MainSection mdScreen={mdScreen}>
+                <QuestionsSection mdScreen={mdScreen}>
+                    <Box>
+                        {displayPosts.map((displayPost) => (
+                            <SinglePost
+                                key={displayPost.id}
+                                post={displayPost}
+                            />
+                        ))}
+                    </Box>
+                    <LoadMoreButton
+                        disabled={postCount === maxPosts}
+                        onClick={handleLoadMore}
+                    >
+                        {postCount === maxPosts
+                            ? 'No more to load'
+                            : 'Load More'}
+                    </LoadMoreButton>
+                </QuestionsSection>
+                <ContactSection mdScreen={mdScreen}>
+                    <ContactWrapper onClick={() => window.open(LINKS[2].url)}>
+                        <HeadsetMic />
+                        <h4>Kontakt</h4>
+                    </ContactWrapper>
+                </ContactSection>
+            </MainSection>
         </PageCotainer>
     );
 };
