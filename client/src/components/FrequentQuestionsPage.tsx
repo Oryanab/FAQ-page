@@ -13,6 +13,7 @@ import { LINKS, POSTS_CHUNK } from '../constants';
 import { Post } from 'GlobalTypes';
 import { HeadsetMic } from '@mui/icons-material';
 import SinglePost from './SinglePost';
+import Search from './Search';
 
 interface MdScreenProps extends BoxProps {
     mdScreen: boolean;
@@ -134,6 +135,7 @@ const FrequentQuestionsPage = () => {
     const { posts } = useMainContext();
     const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
     const [postCount, setPostCount] = useState<number>(POSTS_CHUNK);
+    const [keyword, setKeyword] = useState<string>('');
     const maxPosts = useMemo(() => posts.length, [posts]);
 
     const handleLoadMore = useCallback(() => {
@@ -143,13 +145,25 @@ const FrequentQuestionsPage = () => {
     }, [maxPosts, postCount]);
 
     useEffect(() => {
-        setDisplayPosts(posts.slice(0, postCount));
-    }, [postCount, posts]);
+        keyword.length
+            ? setDisplayPosts(
+                  posts.slice(0, postCount).filter((post) =>
+                      post.title.includes(
+                          keyword
+                              .replace(/[^\w\s]/gi, '')
+                              .replace(/\d+/g, '')
+                              .trim()
+                      )
+                  )
+              )
+            : setDisplayPosts(posts.slice(0, postCount));
+    }, [postCount, posts, keyword]);
 
     return (
         <PageCotainer>
             <Header />
             <PageHeader>Fragen & Antworten</PageHeader>
+            <Search setKeyword={setKeyword} />
             <MainSection mdScreen={mdScreen}>
                 <QuestionsSection mdScreen={mdScreen}>
                     <Box>
@@ -161,7 +175,7 @@ const FrequentQuestionsPage = () => {
                         ))}
                     </Box>
                     <LoadMoreButton
-                        disabled={postCount === maxPosts}
+                        disabled={postCount === maxPosts || !!keyword.length}
                         onClick={handleLoadMore}
                     >
                         {postCount === maxPosts
