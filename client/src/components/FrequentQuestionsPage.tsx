@@ -53,7 +53,7 @@ const QuestionsSection = styled(Box, {
     background: '#FFF',
     flex: 1,
     height: '100%',
-    maxHeight: mdScreen ? 400 : 500,
+    maxHeight: mdScreen ? 380 : 500,
     overflowY: 'scroll',
     padding: mdScreen ? '0 10px' : '0 40px',
     display: 'flex',
